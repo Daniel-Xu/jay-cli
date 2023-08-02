@@ -1,0 +1,24 @@
+[package]
+name = "jay-cli"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.72"
+async-trait = "0.1.72"
+clap = { version = "4.3.16", features = ["derive"] }
+colored = "2.0.4"
+crossbeam = { version = "0.8.2", features = ["crossbeam-channel"] }
+env_logger = "0.10.0"
+indicatif = "0.17.5"
+inquire = "0.6.2"
+log = "0.4.19"
+minimp3 = "0.5.1"
+pbr = "1.1.1"
+reqwest = { version = "0.11.18", features = ["blocking", "json"] }
+rodio = { version = "0.17.1"}
+serde = { version = "1.0.171", features = ["derive"] }
+serde_json = "1.0.103"
+tokio = { version = "1.29.1", features = ["full"] }
