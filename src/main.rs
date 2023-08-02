@@ -4,29 +4,11 @@ mod model;
 mod mp3_stream_decoder;
 mod player;
 mod utils;
-
-
-
 use clap::Parser;
 
-use rodio::{source::Source};
-
-
-
-
-
-
-
-
-
-
-
-
+use rodio::source::Source;
 
 use crate::cli::Cli;
-
-
-
 
 #[tokio::main]
 async fn main() {
