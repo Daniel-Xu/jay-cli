@@ -28,3 +28,25 @@ Listen music via CLI
 ```
 
 ![2023-08-01 at 12 51 AM](https://github.com/Daniel-Xu/jay-cli/assets/548144/6b7ee34d-63c4-49bc-b705-778ad6355887)
+
+## How to install
+```
+cargo install jay-cli
+```
+
+## How to use 
+There are two commands: `single` and `random`
+* single: you need to choose song manually
+* random: song is choson for you randomly
+```
+Usage: jay-cli <COMMAND>
+
+Commands:
+  single  Choose song manually one by one after playing
+  random  Song automatically chosen for you after playing
+  help    Print this message or the help of the given subcommand(s)
+
+Options:
+  -h, --help  Print help
+```
+
