@@ -50,3 +50,9 @@ Options:
   -h, --help  Print help
 ```
 
+## Architecture
+
+Might be a little bit complex than it should be!
+
+![image](https://github.com/Daniel-Xu/jay-cli/assets/548144/a9224ba7-4a0c-4e69-9a38-2657aeb53aea)
+
