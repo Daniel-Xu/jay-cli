@@ -1,6 +1,8 @@
 # jay-cli
 Listen music via CLI
 
+* Currently, it's only tested on MacOS
+
  ```
           _____                    _____                _____                            _____                    _____            _____          
          /\    \                  /\    \              |\    \                          /\    \                  /\    \          /\    \         
