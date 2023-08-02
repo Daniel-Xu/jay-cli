@@ -1,7 +1,15 @@
 [package]
 name = "jay-cli"
-version = "0.1.0"
+version = "1.0.0"
 edition = "2021"
+authors = ["danielxu"]
+description = "Listen music from CLI"
+readme = "README.md"
+license = "MIT"
+keywords = ["CLI", "Music", "JayChou"]
+repository = "https://github.com/Daniel-Xu/jay-cli.git"
+
+
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
