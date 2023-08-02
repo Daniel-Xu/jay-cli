@@ -69,7 +69,6 @@ impl RunCommand for Single {
     async fn run(self) -> Result<()> {
         let songs_info = get_songs_info("./playlist/jay.json");
         let player = Arc::new(Player::try_new().unwrap());
-        let player_cloned = player.clone();
 
         let pb = ProgressBar::new(0);
 
@@ -77,8 +76,6 @@ impl RunCommand for Single {
             ProgressStyle::with_template("[{wide_bar}] [{elapsed_precise}] / [{msg}]").unwrap(),
         );
 
-        let songs_clone = songs_info.clone();
-        let pb_cloned = pb.clone();
         tokio::spawn(async move {
             start_signal_watch("init ctrl_c handler".into()).await;
         });
@@ -86,6 +83,9 @@ impl RunCommand for Single {
         // tick controller channel
         let (tick_sender, tick_receiver) = mpsc::channel(128);
 
+        let songs_clone = songs_info.clone();
+        let player_cloned = player.clone();
+        let pb_cloned = pb.clone();
         let notification_handle = thread::spawn(move || {
             process_sink_message(player_cloned, pb_cloned, songs_clone, tick_sender)
         });
