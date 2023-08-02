@@ -14,7 +14,10 @@ pub struct Cli {
 
 #[derive(Subcommand, Debug)]
 pub enum Commands {
+    /// Choose song manually one by one after playing
     Single(Single),
+
+    /// Song automatically chosen for you after playing
     Random(Random),
 }
 
