@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0.72"
 async-trait = "0.1.72"
+chrono = "0.4.26"
 clap = { version = "4.3.16", features = ["derive"] }
 colored = "2.0.4"
 crossbeam = { version = "0.8.2", features = ["crossbeam-channel"] }

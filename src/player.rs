@@ -8,10 +8,11 @@ use std::thread;
 pub struct Player {
     //send message to sink thread
     sender: Sender<PlayerMessage>,
+
     // receive message from sink thread
     pub receiver: Receiver<SinkMessage>,
 
-    // send message from sink thread
+    // send status message from the music player thread
     pub sink_sender: Sender<SinkMessage>,
 }
 
@@ -21,7 +22,6 @@ enum PlayerMessage {
 
 #[derive(Debug)]
 pub enum SinkMessage {
-    Initialized,
     Playing,
     Done,
 }
@@ -30,6 +30,8 @@ impl Player {
     pub fn try_new() -> Result<Self> {
         OutputStream::try_default().context("Audio device initialization failed")?;
 
+        // sender is whoever wants to player an url
+        // receiver is used only in this thread
         let (sender, receiver) = channel::unbounded();
         let (sink_sender, sink_receiver) = channel::unbounded();
 
@@ -39,23 +41,23 @@ impl Player {
 
             loop {
                 if let Ok(PlayerMessage::Play { listen_url }) = receiver.recv() {
-                    sink_sender.send(SinkMessage::Initialized).unwrap();
-
                     let response = reqwest::blocking::get(&listen_url).unwrap();
                     let source = Mp3StreamDecoder::new(response).unwrap();
+                    sink_sender.send(SinkMessage::Playing).unwrap();
+
                     let sink = Sink::try_new(&stream_handle).unwrap();
                     sink.append(source);
-
-                    sink_sender.send(SinkMessage::Playing).unwrap();
                     sink.sleep_until_end();
+
+                    sink_sender.send(SinkMessage::Done).unwrap();
                 };
             }
         });
 
         Ok(Self {
-            sender,
-            receiver: sink_receiver,
-            sink_sender: sink_sender_clone,
+            sender,                         // url sender
+            receiver: sink_receiver,        // status receiver
+            sink_sender: sink_sender_clone, // status sender
         })
     }
 

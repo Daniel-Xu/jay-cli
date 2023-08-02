@@ -18,7 +18,6 @@ pub enum Commands {
     Random(Random),
 }
 
-// todo use CliError
 #[async_trait]
 pub trait RunCommand {
     async fn run(self) -> Result<()>;

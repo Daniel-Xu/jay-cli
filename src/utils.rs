@@ -1,10 +1,9 @@
 use crate::model::{JayMusic, Song};
-use crate::player::SinkMessage;
 use colored::Colorize;
-use crossbeam::channel::Sender;
 use indicatif::ProgressBar;
 use std::time::Duration;
-use tokio::sync::oneshot;
+use tokio::sync::mpsc::Receiver;
+use tokio::time::MissedTickBehavior;
 
 type SongsInfo = Vec<Song>;
 
@@ -19,6 +18,37 @@ pub fn get_songs_info(path: &str) -> SongsInfo {
 pub fn show_current_song_info(song: &Song) {
     println!("{}       {}", "Song : ".bright_green(), song.name);
     println!("{}       {}", "Album:".bright_green(), song.album.name);
+}
+
+pub fn show_jay_ascii() {
+    println!(
+        "{}",
+        r#" 
+          _____                    _____                _____                            _____                    _____            _____          
+         /\    \                  /\    \              |\    \                          /\    \                  /\    \          /\    \         
+        /::\    \                /::\    \             |:\____\                        /::\    \                /::\____\        /::\    \        
+        \:::\    \              /::::\    \            |::|   |                       /::::\    \              /:::/    /        \:::\    \       
+         \:::\    \            /::::::\    \           |::|   |                      /::::::\    \            /:::/    /          \:::\    \      
+          \:::\    \          /:::/\:::\    \          |::|   |                     /:::/\:::\    \          /:::/    /            \:::\    \     
+           \:::\    \        /:::/__\:::\    \         |::|   |                    /:::/  \:::\    \        /:::/    /              \:::\    \    
+           /::::\    \      /::::\   \:::\    \        |::|   |                   /:::/    \:::\    \      /:::/    /               /::::\    \   
+  _____   /::::::\    \    /::::::\   \:::\    \       |::|___|______            /:::/    / \:::\    \    /:::/    /       ____    /::::::\    \  
+ /\    \ /:::/\:::\    \  /:::/\:::\   \:::\    \      /::::::::\    \          /:::/    /   \:::\    \  /:::/    /       /\   \  /:::/\:::\    \ 
+/::\    /:::/  \:::\____\/:::/  \:::\   \:::\____\    /::::::::::\    \        /:::/____/     \:::\____\/:::/____/       /::\   \/:::/  \:::\____\
+\:::\  /:::/    \::/    /\::/    \:::\  /:::/    /   /:::/~~~~/~~ \ ___\       \:::\    \      \::/    /\:::\    \       \:::\  /:::/    \::/    /
+ \:::\/:::/    / \/____/  \/____/ \:::\/:::/    /   /:::/    /                  \:::\    \      \/____/  \:::\    \       \:::\/:::/    / \/____/ 
+  \::::::/    /                    \::::::/    /   /:::/    /                    \:::\    \               \:::\    \       \::::::/    /          
+   \::::/    /                      \::::/    /   /:::/    /                      \:::\    \               \:::\    \       \::::/____/           
+    \::/    /                       /:::/    /    \::/    /                        \:::\    \               \:::\    \       \:::\    \           
+     \/____/                       /:::/    /      \/____/                          \:::\    \               \:::\    \       \:::\    \          
+                                  /:::/    /                                         \:::\    \               \:::\    \       \:::\    \         
+                                 /:::/    /                                           \:::\____\               \:::\____\       \:::\____\        
+                                 \::/    /                                             \::/    /                \::/    /        \::/    /        
+                                  \/____/                                               \/____/                  \/____/          \/____/         
+                                                                                                                                                  
+        
+        "#.bright_yellow()
+    )
 }
 
 pub async fn start_signal_watch(_message: String) {
@@ -49,16 +79,22 @@ pub async fn start_signal_watch(_message: String) {
     std::process::exit(0);
 }
 
-pub async fn tick(p: ProgressBar, orx: oneshot::Receiver<bool>, sink_sender: Sender<SinkMessage>) {
-    let _ = orx.await;
-
+pub async fn tick(p: ProgressBar, mut tick_receiver: Receiver<bool>) {
+    let mut is_playing = false;
     let mut interval = tokio::time::interval(Duration::from_secs(1));
-    loop {
-        interval.tick().await;
-        p.inc(1);
+    interval.set_missed_tick_behavior(MissedTickBehavior::Skip);
 
-        if p.elapsed().as_secs() >= p.duration().as_secs() {
-            sink_sender.send(SinkMessage::Done).unwrap();
+    let tick_channel_future = async { tick_receiver.recv().await.unwrap() };
+    tokio::pin!(tick_channel_future);
+
+    loop {
+        tokio::select! {
+            playing = &mut tick_channel_future, if !is_playing => {
+                is_playing = playing;
+            },
+            _ = interval.tick(), if is_playing => {
+                p.inc(1);
+            },
         }
     }
 }
