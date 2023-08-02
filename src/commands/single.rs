@@ -24,6 +24,7 @@ fn choose_and_play(player: SharedPlayer, pb: ProgressBar, songs_info: Vec<Song>)
 
     let song_url = match ans {
         Ok(choice) => {
+            pb.reset();
             pb.suspend(|| {
                 show_current_song_info(&choice);
             });
