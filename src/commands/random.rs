@@ -1,22 +1,21 @@
 use crate::cli::RunCommand;
 use crate::model::Song;
-use crate::player::{Player, SinkMessage};
-use crate::utils::{get_songs_info, show_current_song_info, start_signal_watch, tick};
+use crate::player::Player;
+use crate::utils::{
+    create_progress_bar, get_songs_info, process_sink_message, show_current_song_info,
+    start_signal_watch, tick, SharedPlayer,
+};
 use anyhow::Result;
 use async_trait::async_trait;
 use clap::Args;
-use indicatif::{HumanDuration, ProgressBar, ProgressStyle};
+use indicatif::{HumanDuration, ProgressBar};
 use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
 use tokio::sync::mpsc;
-use tokio::sync::mpsc::Sender;
 
 #[derive(Args, Debug)]
 pub struct Random {}
-
-type SharedPlayer = Arc<Player>;
-
 use rand::Rng;
 
 fn play_random_song(player: SharedPlayer, pb: ProgressBar, songs: Vec<Song>) {
@@ -34,34 +33,12 @@ fn play_random_song(player: SharedPlayer, pb: ProgressBar, songs: Vec<Song>) {
     player.play(&choice.info.addr_128);
 }
 
-fn process_sink_message(
-    player: SharedPlayer,
-    pb: ProgressBar,
-    songs_info: Vec<Song>,
-    tick_sender: Sender<bool>,
-) {
-    while let Ok(msg) = player.receiver.recv() {
-        match msg {
-            SinkMessage::Playing => {
-                tick_sender.blocking_send(true).unwrap();
-            }
-            SinkMessage::Done => {
-                play_random_song(player.clone(), pb.clone(), songs_info.clone());
-                pb.reset();
-            }
-        }
-    }
-}
-
 #[async_trait]
 impl RunCommand for Random {
     async fn run(self) -> Result<()> {
         let songs_info = get_songs_info("./playlist/jay.json");
         let player = Arc::new(Player::try_new().unwrap());
-        let pb = ProgressBar::new(0);
-        pb.set_style(
-            ProgressStyle::with_template("[{wide_bar}] [{elapsed_precise}] / [{msg}]").unwrap(),
-        );
+        let pb = create_progress_bar();
 
         tokio::spawn(async move {
             start_signal_watch("init ctrl_c handler".into()).await;
@@ -76,7 +53,13 @@ impl RunCommand for Random {
         let player_cloned = player.clone();
         let pb_cloned = pb.clone();
         let notification_handle = thread::spawn(move || {
-            process_sink_message(player_cloned, pb_cloned, songs_clone, tick_sender)
+            process_sink_message(
+                player_cloned,
+                pb_cloned,
+                songs_clone,
+                tick_sender,
+                play_random_song,
+            )
         });
 
         play_random_song(player.clone(), pb.clone(), songs_info.clone());

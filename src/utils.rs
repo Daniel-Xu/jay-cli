@@ -1,11 +1,14 @@
 use crate::model::{JayMusic, Song};
+use crate::player::{Player, SinkMessage};
 use colored::Colorize;
-use indicatif::ProgressBar;
+use indicatif::{ProgressBar, ProgressStyle};
+use std::sync::Arc;
 use std::time::Duration;
-use tokio::sync::mpsc::Receiver;
+use tokio::sync::mpsc::{Receiver, Sender};
 use tokio::time::MissedTickBehavior;
 
 type SongsInfo = Vec<Song>;
+pub type SharedPlayer = Arc<Player>;
 
 pub fn get_songs_info(path: &str) -> SongsInfo {
     let file = std::fs::File::open(path).expect("file not found");
@@ -95,6 +98,35 @@ pub async fn tick(p: ProgressBar, mut tick_receiver: Receiver<bool>) {
             _ = interval.tick(), if is_playing => {
                 p.inc(1);
             },
+        }
+    }
+}
+
+pub fn create_progress_bar() -> ProgressBar {
+    let pb = ProgressBar::new(0);
+    pb.set_style(
+        ProgressStyle::with_template("[{wide_bar}] [{elapsed_precise}] / [{msg}]").unwrap(),
+    );
+
+    pb
+}
+
+pub fn process_sink_message(
+    player: SharedPlayer,
+    pb: ProgressBar,
+    songs_info: Vec<Song>,
+    tick_sender: Sender<bool>,
+    action: fn(SharedPlayer, ProgressBar, SongsInfo),
+) {
+    while let Ok(msg) = player.receiver.recv() {
+        match msg {
+            SinkMessage::Playing => {
+                tick_sender.blocking_send(true).unwrap();
+            }
+            SinkMessage::Done => {
+                action(player.clone(), pb.clone(), songs_info.clone());
+                pb.reset();
+            }
         }
     }
 }
