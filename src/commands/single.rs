@@ -60,12 +60,12 @@ impl RunCommand for Single {
         // tick controller channel
         let (tick_sender, tick_receiver) = mpsc::channel(128);
         let pb_clone = pb.clone();
-        tokio::spawn(async move { tick(pb_clone, tick_receiver).await });
+        let tick_handle = tokio::spawn(async move { tick(pb_clone, tick_receiver).await });
 
         let songs_clone = songs_info.clone();
         let player_cloned = player.clone();
         let pb_cloned = pb.clone();
-        let notification_handle = thread::spawn(move || {
+        thread::spawn(move || {
             process_sink_message(
                 player_cloned,
                 pb_cloned,
@@ -77,9 +77,7 @@ impl RunCommand for Single {
 
         choose_and_play(player.clone(), pb.clone(), songs_info.clone());
 
-        notification_handle
-            .join()
-            .expect("notification should work");
+        tick_handle.await.unwrap();
         Ok(())
     }
 }
