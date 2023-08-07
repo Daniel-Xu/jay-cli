@@ -1,5 +1,6 @@
 use crate::model::{JayMusic, Song};
 use crate::player::{Player, SinkMessage};
+use anyhow::Context;
 use colored::Colorize;
 use indicatif::{ProgressBar, ProgressStyle};
 use std::sync::Arc;
@@ -7,14 +8,21 @@ use std::time::Duration;
 use tokio::sync::mpsc::{Receiver, Sender};
 use tokio::time::MissedTickBehavior;
 
+use include_dir::{include_dir, Dir};
+
+const PROJECT_DIR: Dir = include_dir!("./playlist");
+
 type SongsInfo = Vec<Song>;
 pub type SharedPlayer = Arc<Player>;
 
 pub fn get_songs_info(path: &str) -> SongsInfo {
-    let file = std::fs::File::open(path).expect("file not found");
-    let reader = std::io::BufReader::new(file);
+    let file = PROJECT_DIR
+        .get_file(path)
+        .context("can't find playlist dir")
+        .unwrap();
+    let body = file.contents_utf8().context("can't get json body").unwrap();
 
-    let jay_music: JayMusic = serde_json::from_reader(reader).expect("json parse error");
+    let jay_music: JayMusic = serde_json::from_str(body).expect("json parse error");
     jay_music.list
 }
 

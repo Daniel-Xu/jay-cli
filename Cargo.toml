@@ -1,6 +1,6 @@
 [package]
 name = "jay-cli"
-version = "1.0.1"
+version = "1.0.2"
 edition = "2021"
 authors = ["danielxu"]
 description = "Listen music from CLI"
@@ -21,6 +21,7 @@ clap = { version = "4.3.16", features = ["derive"] }
 colored = "2.0.4"
 crossbeam = { version = "0.8.2", features = ["crossbeam-channel"] }
 env_logger = "0.10.0"
+include_dir = "0.7.3"
 indicatif = "0.17.5"
 inquire = "0.6.2"
 log = "0.4.19"

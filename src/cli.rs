@@ -7,6 +7,8 @@ use colored::Colorize;
 use std::process::ExitCode;
 
 #[derive(Parser, Debug)]
+#[command(author = "danielxu")]
+#[command(version)]
 pub struct Cli {
     #[clap(subcommand)]
     command: Commands,
