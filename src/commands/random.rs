@@ -36,7 +36,7 @@ fn play_random_song(player: SharedPlayer, pb: ProgressBar, songs: Vec<Song>) {
 #[async_trait]
 impl RunCommand for Random {
     async fn run(self) -> Result<()> {
-        let songs_info = get_songs_info("./playlist/jay.json");
+        let songs_info = get_songs_info("playlist/jay.json");
         let player = Arc::new(Player::try_new().unwrap());
         let pb = create_progress_bar();
 
