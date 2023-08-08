@@ -1,4 +1,4 @@
-# jay-cli
+# jay-cli （only for learning purpose)
 Listen music via CLI
 
 * Currently, it's only tested on MacOS
