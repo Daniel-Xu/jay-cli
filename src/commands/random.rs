@@ -18,7 +18,12 @@ use tokio::sync::mpsc;
 pub struct Random {}
 use rand::Rng;
 
-fn play_random_song(player: SharedPlayer, pb: ProgressBar, songs: Vec<Song>) {
+fn play_random_song(
+    player: SharedPlayer,
+    pb: ProgressBar,
+    songs: Vec<Song>,
+    _default_song: Option<Song>,
+) {
     let mut rng = rand::thread_rng();
     let n = songs.len();
     let song_id = rng.gen_range(0..n);
@@ -59,10 +64,11 @@ impl RunCommand for Random {
                 songs_clone,
                 tick_sender,
                 play_random_song,
+                None,
             )
         });
 
-        play_random_song(player.clone(), pb.clone(), songs_info.clone());
+        play_random_song(player.clone(), pb.clone(), songs_info.clone(), None);
 
         tick_handle.await.unwrap();
 

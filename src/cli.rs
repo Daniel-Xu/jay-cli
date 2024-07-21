@@ -1,5 +1,7 @@
+use crate::commands::loop_one::LoopOne;
 use crate::commands::random::Random;
 use crate::commands::single::Single;
+
 use anyhow::Result;
 use async_trait::async_trait;
 use clap::{Parser, Subcommand};
@@ -21,6 +23,9 @@ pub enum Commands {
 
     /// Song automatically chosen for you after playing
     Random(Random),
+
+    /// choose first and then loop forever
+    LoopOne(LoopOne),
 }
 
 #[async_trait]
@@ -33,6 +38,7 @@ impl Cli {
         let output = match self.command {
             Commands::Single(single) => single.run().await,
             Commands::Random(random) => random.run().await,
+            Commands::LoopOne(loop_one) => loop_one.run().await,
         };
 
         match output {

@@ -17,42 +17,25 @@ use std::time::Duration;
 use tokio::sync::mpsc;
 
 #[derive(Args, Debug)]
-pub struct Single {}
+pub struct LoopOne {}
 
-fn choose_and_play(
+fn loop_one_song(
     player: SharedPlayer,
     pb: ProgressBar,
-    songs_info: Vec<Song>,
-    _default_song: Option<Song>,
+    _songs: Vec<Song>,
+    loop_song: Option<Song>,
 ) {
-    let ans = pb.suspend(|| Select::new("choose a song: ", songs_info).prompt());
-
-    let song_url = match ans {
-        Ok(choice) => {
-            pb.reset();
-            pb.suspend(|| {
-                show_current_song_info(&choice);
-            });
-            pb.set_length(choice.info.duration as u64);
-            pb.set_message(
-                HumanDuration(Duration::from_secs(choice.info.duration as u64)).to_string(),
-            );
-
-            choice.info.addr_128
-        }
-
-        Err(_) => {
-            pb.finish_and_clear();
-            std::process::exit(0);
-        }
-    };
-
-    // tick_sender.blocking_send(false).unwrap();
-    player.play(&song_url);
+    let choice = loop_song.unwrap();
+    pb.suspend(|| {
+        show_current_song_info(&choice);
+    });
+    pb.set_length(choice.info.duration as u64);
+    pb.set_message(HumanDuration(Duration::from_secs(choice.info.duration as u64)).to_string());
+    player.play(&choice.info.addr_128);
 }
 
 #[async_trait]
-impl RunCommand for Single {
+impl RunCommand for LoopOne {
     async fn run(self) -> Result<()> {
         let songs_info = get_songs_info("jay.json");
         let player = Arc::new(Player::try_new().unwrap());
@@ -70,20 +53,34 @@ impl RunCommand for Single {
         let songs_clone = songs_info.clone();
         let player_cloned = player.clone();
         let pb_cloned = pb.clone();
+        let default_song;
+
+        let ans = pb.suspend(|| Select::new("choose a song: ", songs_info.clone()).prompt());
+        match ans {
+            Ok(choice) => {
+                default_song = Some(choice.clone());
+                loop_one_song(player, pb, Vec::new(), default_song.clone())
+            }
+
+            Err(_) => {
+                pb.finish_and_clear();
+                std::process::exit(0);
+            }
+        };
+
         thread::spawn(move || {
             process_sink_message(
                 player_cloned,
                 pb_cloned,
                 songs_clone,
                 tick_sender,
-                choose_and_play,
-                None,
+                loop_one_song,
+                default_song,
             )
         });
 
-        choose_and_play(player.clone(), pb.clone(), songs_info.clone(), None);
-
         tick_handle.await.unwrap();
+
         Ok(())
     }
 }

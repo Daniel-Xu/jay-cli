@@ -1,5 +1,5 @@
 #![allow(dead_code, unused_variables, unused_mut)]
-use minimp3::{Decoder, Frame};
+use minimp3_fixed::{Decoder, Frame};
 use std::io::Read;
 use std::time::Duration;
 

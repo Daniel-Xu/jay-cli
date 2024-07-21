@@ -13,6 +13,7 @@ pub struct Player {
     pub receiver: Receiver<SinkMessage>,
 
     // send status message from the music player thread
+    #[allow(dead_code)]
     pub sink_sender: Sender<SinkMessage>,
 }
 

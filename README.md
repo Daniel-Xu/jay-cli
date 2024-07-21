@@ -36,10 +36,11 @@ Listen music via CLI
 cargo install jay-cli
 ```
 
-## How to use 
+## How to use
 There are two commands: `single` and `random`
 * single: you need to choose song manually
 * random: song is choson for you randomly
+* loop-one: choose one song and loop forever
 ```
 Usage: jay-cli <COMMAND>
 
