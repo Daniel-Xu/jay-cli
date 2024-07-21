@@ -1,6 +1,6 @@
 [package]
 name = "jay-cli"
-version = "1.0.2"
+version = "1.1.0"
 edition = "2021"
 authors = ["danielxu"]
 description = "Listen music from CLI"
