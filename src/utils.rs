@@ -23,7 +23,11 @@ pub fn get_songs_info(path: &str) -> SongsInfo {
     let body = file.contents_utf8().context("can't get json body").unwrap();
 
     let jay_music: JayMusic = serde_json::from_str(body).expect("json parse error");
-    jay_music.list
+    jay_music
+        .list
+        .into_iter()
+        .filter(|song| !song.album.name.contains("演唱会"))
+        .collect()
 }
 
 pub fn show_current_song_info(song: &Song) {
