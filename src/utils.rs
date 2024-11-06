@@ -26,7 +26,12 @@ pub fn get_songs_info(path: &str) -> SongsInfo {
     jay_music
         .list
         .into_iter()
-        .filter(|song| !song.album.name.contains("演唱会"))
+        .filter(|song| {
+            !song.album.name.contains("演唱会")
+                && !song.album.name.contains("好声音")
+                && !song.album.name.contains("live")
+                && !song.album.name.contains("新歌声")
+        })
         .collect()
 }
 
